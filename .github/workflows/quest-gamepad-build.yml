@@ -10,9 +10,40 @@ on:
   workflow_dispatch:
 
 jobs:
+  check-third-party-secret:
+    name: Check Quest SDK access
+    runs-on: ubuntu-latest
+    outputs:
+      available: ${{ steps.check-secret.outputs.available }}
+    steps:
+      - name: Check for the private third-party access token
+        id: check-secret
+        env:
+          THIRD_PARTY_PAT: ${{ secrets.THIRD_PARTY_PAT }}
+        run: |
+          if [ -n "$THIRD_PARTY_PAT" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
   quest-gecko-debug:
     name: Build Quest / Gecko debug APK
+    needs: check-third-party-secret
+    if: needs.check-third-party-secret.outputs.available == 'true'
     uses: ./.github/workflows/build.yml
     with:
       flavour: assembleOculusvrArm64GeckoGenericDebug
-      internal: false
+      internal: true
+    secrets: inherit
+
+  missing-third-party-secret:
+    name: Explain missing Quest SDK access
+    needs: check-third-party-secret
+    if: needs.check-third-party-secret.outputs.available != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report the required repository secret
+        run: |
+          echo "::error::Add the repository Actions secret THIRD_PARTY_PAT with read access to Igalia/wolvic-third-parties to build the Quest APK."
+          exit 1
