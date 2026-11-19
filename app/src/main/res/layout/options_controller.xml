@@ -67,6 +67,13 @@
                     app:description="@string/controller_options_haptic_feedback" />
 
                 <com.igalia.wolvic.ui.views.settings.SwitchSetting
+                    android:id="@+id/gamepad_mode_switch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="@{BuildConfig.FLAVOR_backend == &quot;gecko&quot; ? View.VISIBLE : View.GONE}"
+                    app:description="@string/controller_options_gamepad_mode" />
+
+                <com.igalia.wolvic.ui.views.settings.SwitchSetting
                     android:id="@+id/handtracking_switch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

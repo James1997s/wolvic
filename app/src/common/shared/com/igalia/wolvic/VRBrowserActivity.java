@@ -55,6 +55,7 @@ import com.igalia.wolvic.audio.AndroidMediaPlayer;
 import com.igalia.wolvic.audio.AndroidMediaPlayerSoundPool;
 import com.igalia.wolvic.audio.AudioEngine;
 import com.igalia.wolvic.browser.Accounts;
+import com.igalia.wolvic.browser.ControllerGamepadBridge;
 import com.igalia.wolvic.browser.Media;
 import com.igalia.wolvic.browser.PermissionDelegate;
 import com.igalia.wolvic.browser.SettingsStore;
@@ -643,6 +644,7 @@ public class VRBrowserActivity extends PlatformActivity implements WidgetManager
 
     @Override
     protected void onPause() {
+        ControllerGamepadBridge.onModeChanged(false);
         if (mIsPresentingImmersive.getValue()) {
             // This needs to be sync to ensure that WebVR is correctly paused.
             // Also prevents a deadlock in onDestroy when the BrowserWidget is released.
@@ -1520,6 +1522,15 @@ public class VRBrowserActivity extends PlatformActivity implements WidgetManager
     @SuppressWarnings("unused")
     private void updateControllerBatteryLevels(final int leftLevel, final int rightLevel) {
         runOnUiThread(() -> updateBatteryLevels(leftLevel, rightLevel));
+    }
+
+    @Keep
+    @SuppressWarnings("unused")
+    private void updateControllerGamepad(final boolean controllerAvailable,
+                                        final float[] buttons, final float[] axes) {
+        ControllerGamepadBridge.update(
+                SettingsStore.getInstance(this).isControllerGamepadModeEnabled(),
+                controllerAvailable, buttons, axes);
     }
 
     private void updateBatteryLevels(final int leftLevel, final int rightLevel) {

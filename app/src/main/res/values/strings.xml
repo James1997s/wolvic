@@ -808,6 +808,9 @@
          haptic feedback of the remote controller. -->
     <string name="controller_options_haptic_feedback">Haptic Feedback</string>
 
+    <!-- Exposes OpenXR controllers as a standard gamepad to websites outside WebXR. -->
+    <string name="controller_options_gamepad_mode">Use Controllers as Gamepad</string>
+
     <!-- This string is used to label the switch that allow the user to enable/disable
          the hand-tracking capabilities. -->
     <string name="controller_options_handtracking">Hand Tracking</string>

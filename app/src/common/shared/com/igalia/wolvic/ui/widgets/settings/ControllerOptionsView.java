@@ -15,6 +15,7 @@ import androidx.databinding.DataBindingUtil;
 
 import com.igalia.wolvic.R;
 import com.igalia.wolvic.audio.AudioEngine;
+import com.igalia.wolvic.browser.ControllerGamepadBridge;
 import com.igalia.wolvic.browser.SettingsStore;
 import com.igalia.wolvic.databinding.OptionsControllerBinding;
 import com.igalia.wolvic.ui.views.settings.RadioGroupSetting;
@@ -72,6 +73,9 @@ class ControllerOptionsView extends SettingsView {
         mBinding.hapticFeedbackSwitch.setOnCheckedChangeListener(mHapticFeedbackListener);
         setHapticFeedbackEnabled(SettingsStore.getInstance(getContext()).isHapticFeedbackEnabled(), false);
 
+        mBinding.gamepadModeSwitch.setOnCheckedChangeListener(mGamepadModeListener);
+        setControllerGamepadMode(SettingsStore.getInstance(getContext()).isControllerGamepadModeEnabled(), false);
+
         if (mWidgetManager.isEyeTrackingSupported()) {
             mBinding.pointerModeRadio.setOnCheckedChangeListener(mPointerModeListener);
             setPointerMode(SettingsStore.getInstance(getContext()).getPointerMode(), false);
@@ -98,6 +102,7 @@ class ControllerOptionsView extends SettingsView {
         }
         setSoundEffect(SettingsStore.AUDIO_ENABLED, true);
         setHapticFeedbackEnabled(SettingsStore.HAPTIC_FEEDBACK_ENABLED, true);
+        setControllerGamepadMode(SettingsStore.CONTROLLER_GAMEPAD_MODE_DEFAULT, true);
         setPointerMode(SettingsStore.POINTER_MODE_DEFAULT, true);
         setHandTrackingEnabled(true, true);
     }
@@ -151,6 +156,17 @@ class ControllerOptionsView extends SettingsView {
 
         if (doApply) {
             SettingsStore.getInstance(getContext()).setHapticFeedbackEnabled(value);
+        }
+    }
+
+    private void setControllerGamepadMode(boolean value, boolean doApply) {
+        mBinding.gamepadModeSwitch.setOnCheckedChangeListener(null);
+        mBinding.gamepadModeSwitch.setValue(value, false);
+        mBinding.gamepadModeSwitch.setOnCheckedChangeListener(mGamepadModeListener);
+
+        if (doApply) {
+            SettingsStore.getInstance(getContext()).setControllerGamepadModeEnabled(value);
+            ControllerGamepadBridge.onModeChanged(value);
         }
     }
 
@@ -218,6 +234,9 @@ class ControllerOptionsView extends SettingsView {
 
     private SwitchSetting.OnCheckedChangeListener mHapticFeedbackListener = (compoundButton, enabled, apply) ->
     setHapticFeedbackEnabled(enabled, true);
+
+    private SwitchSetting.OnCheckedChangeListener mGamepadModeListener = (compoundButton, enabled, apply) ->
+            setControllerGamepadMode(enabled, true);
 
     private RadioGroupSetting.OnCheckedChangeListener mPointerModeListener = (compoundButton, checkedId, doApply) -> {
         if (checkedId == WidgetManagerDelegate.TRACKED_POINTER) {

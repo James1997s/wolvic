@@ -66,6 +66,8 @@ const char* const kAppendAppNotesToCrashReport = "appendAppNotesToCrashReport";
 const char* const kAppendAppNotesToCrashReportSignature = "(Ljava/lang/String;)V";
 const char* const kUpdateControllerBatteryLevelsName = "updateControllerBatteryLevels";
 const char* const kUpdateControllerBatteryLevelsSignature = "(II)V";
+const char* const kUpdateControllerGamepadName = "updateControllerGamepad";
+const char* const kUpdateControllerGamepadSignature = "(Z[F[F)V";
 const char* const kOnAppFocusChangedName = "onAppFocusChanged";
 const char* const kOnAppFocusChangedSignature = "(Z)V";
 const char* const kSetEyeTrackingSupported = "setEyeTrackingSupported";
@@ -110,6 +112,7 @@ jmethodID sOnAppLink = nullptr;
 jmethodID sDisableLayers = nullptr;
 jmethodID sAppendAppNotesToCrashReport = nullptr;
 jmethodID sUpdateControllerBatteryLevels = nullptr;
+jmethodID sUpdateControllerGamepad = nullptr;
 jmethodID sOnAppFocusChanged = nullptr;
 jmethodID sSetEyeTrackingSupported = nullptr;
 jmethodID sSetHandTrackingSupported = nullptr;
@@ -164,6 +167,7 @@ VRBrowser::InitializeJava(JNIEnv* aEnv, jobject aActivity) {
   sDisableLayers = FindJNIMethodID(sEnv, sBrowserClass, kDisableLayers, kDisableLayersSignature);
   sAppendAppNotesToCrashReport = FindJNIMethodID(sEnv, sBrowserClass, kAppendAppNotesToCrashReport, kAppendAppNotesToCrashReportSignature);
   sUpdateControllerBatteryLevels = FindJNIMethodID(sEnv, sBrowserClass, kUpdateControllerBatteryLevelsName, kUpdateControllerBatteryLevelsSignature);
+  sUpdateControllerGamepad = FindJNIMethodID(sEnv, sBrowserClass, kUpdateControllerGamepadName, kUpdateControllerGamepadSignature);
   sOnAppFocusChanged = FindJNIMethodID(sEnv, sBrowserClass, kOnAppFocusChangedName, kOnAppFocusChangedSignature);
   sSetEyeTrackingSupported = FindJNIMethodID(sEnv, sBrowserClass, kSetEyeTrackingSupported, kSetEyeTrackingSupportedSignature);
   sSetHandTrackingSupported = FindJNIMethodID(sEnv, sBrowserClass, kSetHandTrackingSupported, kSetHandTrackingSupportedSignature);
@@ -217,6 +221,7 @@ VRBrowser::ShutdownJava() {
   sDisableLayers = nullptr;
   sEnv = nullptr;
   sAppendAppNotesToCrashReport = nullptr;
+  sUpdateControllerGamepad = nullptr;
   sMoveWindowDistance = nullptr;
   sOnMaxCompositionLayersAvailable = nullptr;
 }
@@ -458,6 +463,27 @@ void
 VRBrowser::UpdateControllerBatteryLevels(const jint aLeftBatteryLevel, const jint aRightBatteryLevel) {
   if (!ValidateMethodID(sEnv, sActivity, sUpdateControllerBatteryLevels, __FUNCTION__)) { return; }
   sEnv->CallVoidMethod(sActivity, sUpdateControllerBatteryLevels, aLeftBatteryLevel, aRightBatteryLevel);
+  CheckJNIException(sEnv, __FUNCTION__);
+}
+
+void
+VRBrowser::UpdateControllerGamepadState(const bool aControllerAvailable, const float* aButtons, const float* aAxes) {
+  if (!ValidateMethodID(sEnv, sActivity, sUpdateControllerGamepad, __FUNCTION__)) { return; }
+  constexpr jsize kButtonCount = 17;
+  constexpr jsize kAxisCount = 4;
+  jfloatArray buttons = sEnv->NewFloatArray(kButtonCount);
+  jfloatArray axes = sEnv->NewFloatArray(kAxisCount);
+  if (!buttons || !axes) {
+    if (buttons) sEnv->DeleteLocalRef(buttons);
+    if (axes) sEnv->DeleteLocalRef(axes);
+    return;
+  }
+  sEnv->SetFloatArrayRegion(buttons, 0, kButtonCount, aButtons);
+  sEnv->SetFloatArrayRegion(axes, 0, kAxisCount, aAxes);
+  sEnv->CallVoidMethod(sActivity, sUpdateControllerGamepad,
+                       static_cast<jboolean>(aControllerAvailable), buttons, axes);
+  sEnv->DeleteLocalRef(buttons);
+  sEnv->DeleteLocalRef(axes);
   CheckJNIException(sEnv, __FUNCTION__);
 }
 

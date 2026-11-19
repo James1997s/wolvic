@@ -42,6 +42,7 @@
     <string name="settings_key_haptic_pulse_duration" translatable="false">settings_haptic_pulse_duration</string>
     <string name="settings_key_haptic_pulse_intensity" translatable="false">settings_haptic_pulse_intensity</string>
     <string name="settings_key_haptic_feedback_enabled" translatable="false">settings_haptic_feedback_enabled</string>
+    <string name="settings_key_controller_gamepad_mode" translatable="false">settings_controller_gamepad_mode</string>
     <string name="settings_key_gaze_mode_enabled" translatable="false">settings_gaze_mode_enabled</string>
     <string name="settings_key_keyboard_locale" translatable="false">settings_key_keyboard_locale</string>
     <string name="settings_key_crash_restart_count" translatable="false">settings_key_crash_restart_count</string>

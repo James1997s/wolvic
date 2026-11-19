@@ -48,6 +48,7 @@ void OnAppLink(const std::string& aJSON);
 void DisableLayers();
 void AppendAppNotesToCrashLog(const std::string& aNotes);
 void UpdateControllerBatteryLevels(const jint aLeftBatteryLevel, const jint aRightBatteryLevel);
+void UpdateControllerGamepadState(const bool aControllerAvailable, const float* aButtons, const float* aAxes);
 void OnAppFocusChanged(const bool aIsFocused);
 void SetEyeTrackingSupported(bool aIsSupported);
 void SetHandTrackingSupported(bool aIsSupported);

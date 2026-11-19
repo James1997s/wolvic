@@ -167,6 +167,7 @@ public class SettingsStore {
     public final static float HAPTIC_PULSE_DURATION_DEFAULT = 10.0f;
     public final static float HAPTIC_PULSE_INTENSITY_DEFAULT = 1.0f;
     public final static boolean HAPTIC_FEEDBACK_ENABLED = false;
+    public final static boolean CONTROLLER_GAMEPAD_MODE_DEFAULT = false;
     public final static boolean CENTER_WINDOWS_DEFAULT = false;
     private final static long CRASH_RESTART_DELTA = 2000;
     public final static boolean AUTOPLAY_ENABLED = false;
@@ -823,6 +824,16 @@ public class SettingsStore {
 
     public boolean isHapticFeedbackEnabled() {
         return mPrefs.getBoolean(mContext.getString(R.string.settings_key_haptic_feedback_enabled), HAPTIC_FEEDBACK_ENABLED);
+    }
+
+    public void setControllerGamepadModeEnabled(boolean isEnabled) {
+        SharedPreferences.Editor editor = mPrefs.edit();
+        editor.putBoolean(mContext.getString(R.string.settings_key_controller_gamepad_mode), isEnabled);
+        editor.apply();
+    }
+
+    public boolean isControllerGamepadModeEnabled() {
+        return mPrefs.getBoolean(mContext.getString(R.string.settings_key_controller_gamepad_mode), CONTROLLER_GAMEPAD_MODE_DEFAULT);
     }
 
     public void setPointerMode(@WidgetManagerDelegate.PointerMode int pointerMode) {

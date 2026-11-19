@@ -56,6 +56,9 @@
 #include "vrb/Transform.h"
 #include "vrb/VertexArray.h"
 #include "vrb/Vector.h"
+
+#include <algorithm>
+#include <array>
 #include "tiny_gltf.h"
 
 #include <android/asset_manager_jni.h>
@@ -1252,9 +1255,10 @@ BrowserWorld::StartFrame() {
       m.device->CreateLayerPassthrough();
   };
 
+  const bool isPresenting = m.externalVR->IsPresenting();
   if (m.splashAnimation) {
     TickSplashAnimation();
-  } else if (m.externalVR->IsPresenting()) {
+  } else if (isPresenting) {
     m.CheckBackButton();
     createPassthroughLayerIfNeeded();
     TickImmersive();
@@ -1312,6 +1316,51 @@ BrowserWorld::StartFrame() {
     TickWorld();
     m.externalVR->PushSystemState();
   }
+
+  std::array<float, 17> gamepadButtons{};
+  std::array<float, 4> gamepadAxes{};
+  bool gamepadControllerAvailable = false;
+  if (!isPresenting && !m.splashAnimation && m.controllers) {
+    for (const Controller& controller : m.controllers->GetControllers()) {
+      if (!controller.enabled || controller.mode != ControllerMode::Device) {
+        continue;
+      }
+      gamepadControllerAvailable = true;
+      const auto pressed = [&controller](const uint8_t button) {
+        return (controller.immersivePressedState & (1ULL << button)) != 0 ? 1.0f : 0.0f;
+      };
+      const auto analog = [&controller](const uint8_t button) {
+        const float value = controller.immersiveTriggerValues[button];
+        return value < 0.0f ? 0.0f : std::min(value, 1.0f);
+      };
+      if (controller.leftHanded) {
+        // Quest left X/Y buttons map to the standard X/Y gamepad positions.
+        gamepadButtons[2] = pressed(device::kImmersiveButtonA);
+        gamepadButtons[3] = pressed(device::kImmersiveButtonB);
+        gamepadButtons[4] = analog(device::kImmersiveButtonSqueeze);
+        gamepadButtons[6] = analog(device::kImmersiveButtonTrigger);
+        gamepadButtons[8] = (controller.buttonState & ControllerDelegate::BUTTON_APP) ? 1.0f : 0.0f;
+        gamepadButtons[10] = pressed(device::kImmersiveButtonThumbstick);
+        if (controller.numAxes > device::kImmersiveAxisThumbstickY) {
+          gamepadAxes[0] = controller.immersiveAxes[device::kImmersiveAxisThumbstickX];
+          gamepadAxes[1] = controller.immersiveAxes[device::kImmersiveAxisThumbstickY];
+        }
+      } else {
+        gamepadButtons[0] = pressed(device::kImmersiveButtonA);
+        gamepadButtons[1] = pressed(device::kImmersiveButtonB);
+        gamepadButtons[5] = analog(device::kImmersiveButtonSqueeze);
+        gamepadButtons[7] = analog(device::kImmersiveButtonTrigger);
+        gamepadButtons[9] = (controller.buttonState & ControllerDelegate::BUTTON_APP) ? 1.0f : 0.0f;
+        gamepadButtons[11] = pressed(device::kImmersiveButtonThumbstick);
+        if (controller.numAxes > device::kImmersiveAxisThumbstickY) {
+          gamepadAxes[2] = controller.immersiveAxes[device::kImmersiveAxisThumbstickX];
+          gamepadAxes[3] = controller.immersiveAxes[device::kImmersiveAxisThumbstickY];
+        }
+      }
+    }
+  }
+  VRBrowser::UpdateControllerGamepadState(gamepadControllerAvailable,
+                                           gamepadButtons.data(), gamepadAxes.data());
 }
 
 void
